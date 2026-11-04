@@ -1,6 +1,11 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from app.models.tenant import Tenant, DomainModule
+
+
+def _with_plan(stmt):
+    return stmt.options(selectinload(Tenant.subscription_plan))
 
 
 class TenantRepository:
@@ -9,13 +14,13 @@ class TenantRepository:
 
     async def get_by_id(self, tenant_id: int) -> Tenant | None:
         result = await self.db.execute(
-            select(Tenant).where(Tenant.id == tenant_id, Tenant.is_deleted == False)
+            _with_plan(select(Tenant).where(Tenant.id == tenant_id, Tenant.is_deleted == False))
         )
         return result.scalar_one_or_none()
 
     async def get_by_slug(self, slug: str) -> Tenant | None:
         result = await self.db.execute(
-            select(Tenant).where(Tenant.slug == slug, Tenant.is_deleted == False)
+            _with_plan(select(Tenant).where(Tenant.slug == slug, Tenant.is_deleted == False))
         )
         return result.scalar_one_or_none()
 
@@ -23,7 +28,7 @@ class TenantRepository:
         tenant = Tenant(**kwargs)
         self.db.add(tenant)
         await self.db.flush()
-        await self.db.refresh(tenant)
+        await self.db.refresh(tenant, ["subscription_plan"])
         return tenant
 
     async def update(self, tenant: Tenant, **kwargs) -> Tenant:
@@ -31,11 +36,13 @@ class TenantRepository:
             if hasattr(tenant, key) and value is not None:
                 setattr(tenant, key, value)
         await self.db.flush()
-        await self.db.refresh(tenant)
+        await self.db.refresh(tenant, ["subscription_plan"])
         return tenant
 
     async def list_all(self) -> list[Tenant]:
-        result = await self.db.execute(select(Tenant).where(Tenant.is_deleted == False))
+        result = await self.db.execute(
+            _with_plan(select(Tenant).where(Tenant.is_deleted == False))
+        )
         return list(result.scalars().all())
 
     async def toggle_module(self, tenant: Tenant, module: DomainModule, enabled: bool) -> Tenant:
@@ -46,5 +53,5 @@ class TenantRepository:
             modules.remove(module.value)
         tenant.enabled_modules = modules
         await self.db.flush()
-        await self.db.refresh(tenant)
+        await self.db.refresh(tenant, ["subscription_plan"])
         return tenant

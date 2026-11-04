@@ -32,6 +32,7 @@ class UserUpdate(BaseModel):
     phone: str | None = None
     is_active: bool | None = None
     preferences: dict | None = None
+    tenant_id: int | None = None
 
 
 class UserResponse(BaseModel):

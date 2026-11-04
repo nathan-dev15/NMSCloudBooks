@@ -1,26 +1,30 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
-from app.models.tenant import DomainModule, SubscriptionPlan
+from pydantic import BaseModel, EmailStr, ConfigDict, Field
+from app.models.tenant import DomainModule
+from app.schemas.subscription_plan import SubscriptionPlanBrief
+from typing import Optional
 
 
 class TenantCreate(BaseModel):
     name: str
     slug: str
-    plan: SubscriptionPlan = SubscriptionPlan.BASIC
-    email: EmailStr | None = None
-    phone: str | None = None
-    address: str | None = None
-    gstin: str | None = None
+    subscription_plan_id: int
+    billing_period: Optional[str] = 'trial'  # trial | quarterly | yearly
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = Field(default=None, max_length=20)
+    address: Optional[str] = None
+    gstin: Optional[str] = Field(default=None, max_length=50)
 
 
 class TenantUpdate(BaseModel):
-    name: str | None = None
-    plan: SubscriptionPlan | None = None
-    is_active: bool | None = None
-    email: EmailStr | None = None
-    phone: str | None = None
-    address: str | None = None
-    gstin: str | None = None
-    branding: dict | None = None
+    name: Optional[str] = None
+    subscription_plan_id: Optional[int] = None
+    billing_period: Optional[str] = None
+    is_active: Optional[bool] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = Field(default=None, max_length=20)
+    address: Optional[str] = None
+    gstin: Optional[str] = Field(default=None, max_length=50)
+    branding: Optional[dict] = None
 
 
 class ModuleToggleRequest(BaseModel):
@@ -35,9 +39,11 @@ class TenantResponse(BaseModel):
     name: str
     slug: str
     is_active: bool
-    plan: SubscriptionPlan
+    subscription_plan_id: Optional[int]
+    subscription_plan: Optional[SubscriptionPlanBrief]
+    billing_period: Optional[str]
     enabled_modules: list
     branding: dict
-    email: str | None
-    phone: str | None
-    gstin: str | None
+    email: Optional[str]
+    phone: Optional[str]
+    gstin: Optional[str]
