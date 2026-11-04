@@ -1,7 +1,9 @@
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.core.database import engine, Base
@@ -67,6 +69,11 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 
 
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+
+# Serve uploaded media (avatars, etc.)
+_media_dir = os.path.join(os.path.dirname(__file__), "..", "media")
+os.makedirs(_media_dir, exist_ok=True)
+app.mount("/media", StaticFiles(directory=_media_dir), name="media")
 
 
 @app.get("/health", tags=["Health"])

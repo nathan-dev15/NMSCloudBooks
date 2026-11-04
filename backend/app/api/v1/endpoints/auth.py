@@ -34,6 +34,9 @@ async def get_me(current_user: CurrentUser = Depends(get_current_user)):
         "full_name": current_user.full_name,
         "role": current_user.role.value,
         "is_active": current_user.is_active,
+        "is_verified": current_user.is_verified,
+        "phone": current_user.phone,
+        "avatar_url": current_user.avatar_url,
         "tenant_id": current_user.tenant_id,
         "preferences": current_user.preferences,
     }
