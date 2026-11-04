@@ -16,19 +16,21 @@ async def list_tenants(db: DB, _: SuperAdmin = Depends(require_super_admin)):
 @router.post("", response_model=TenantResponse, status_code=201)
 async def create_tenant(payload: TenantCreate, db: DB, _: SuperAdmin = Depends(require_super_admin)):
     repo = TenantRepository(db)
-    plan_repo = SubscriptionPlanRepository(db)
 
     existing = await repo.get_by_slug(payload.slug)
     if existing:
         raise HTTPException(status_code=409, detail="Tenant slug already exists")
 
-    plan = await plan_repo.get_by_id(payload.subscription_plan_id)
-    if not plan:
-        raise HTTPException(status_code=404, detail="Subscription plan not found")
-
     data = payload.model_dump()
-    # Auto-populate enabled_modules from the selected plan
-    data["enabled_modules"] = list(plan.enabled_modules or [])
+
+    if payload.subscription_plan_id is not None:
+        plan_repo = SubscriptionPlanRepository(db)
+        plan = await plan_repo.get_by_id(payload.subscription_plan_id)
+        if not plan:
+            raise HTTPException(status_code=404, detail="Subscription plan not found")
+        data["enabled_modules"] = list(plan.enabled_modules or [])
+    else:
+        data.setdefault("enabled_modules", [])
 
     return await repo.create(**data)
 
