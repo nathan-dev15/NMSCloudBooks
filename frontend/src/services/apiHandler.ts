@@ -19,6 +19,7 @@ import axios, {
   AxiosError,
   InternalAxiosRequestConfig,
 } from 'axios'
+import { tokenService } from '@/services/core/tokenService'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -145,6 +146,7 @@ function logResponse(method: string, url: string, status: number, ms: number): v
 // ─── Core Axios Instance ──────────────────────────────────────────────────────
 
 const BASE_URL = typeof __API_BASE_URL__ !== 'undefined' ? __API_BASE_URL__ : 'http://localhost:8000'
+export const API_BASE_URL = BASE_URL
 
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: `${BASE_URL}/api/v1`,
@@ -154,7 +156,7 @@ const axiosInstance: AxiosInstance = axios.create({
 
 // ── Request interceptor — inject JWT ─────────────────────────────────────────
 axiosInstance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = localStorage.getItem('access_token')
+  const token = tokenService.accessToken
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -166,23 +168,26 @@ axiosInstance.interceptors.response.use(
   (res) => res,
   async (error: AxiosError) => {
     const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
-    if (error.response?.status === 401 && !original._retry) {
+    const requestUrl = original.url ?? ''
+    // Never intercept auth endpoints — let their 401s surface as normal errors
+    const isAuthEndpoint = /\/auth\/(login|refresh|setup)/.test(requestUrl)
+    const isPublicPage = /^\/mind-maps/.test(window.location.pathname)
+    if (error.response?.status === 401 && !original._retry && !isAuthEndpoint && !isPublicPage) {
       original._retry = true
-      const refresh = localStorage.getItem('refresh_token')
+      const refresh = tokenService.refreshToken
       if (refresh) {
         try {
           const { data } = await axios.post(`${BASE_URL}/api/v1/auth/refresh`, { refresh_token: refresh })
-          localStorage.setItem('access_token', data.access_token)
-          localStorage.setItem('refresh_token', data.refresh_token)
+          tokenService.setTokens(data)
           original.headers!.Authorization = `Bearer ${data.access_token}`
           return axiosInstance(original)
         } catch {
-          localStorage.removeItem('access_token')
-          localStorage.removeItem('refresh_token')
-          window.location.href = '/login'
+          tokenService.clearTokens()
+          if (window.location.pathname !== '/login') window.location.href = '/login'
         }
       } else {
-        window.location.href = '/login'
+        tokenService.clearTokens()
+        if (window.location.pathname !== '/login') window.location.href = '/login'
       }
     }
     return Promise.reject(error)

@@ -2,6 +2,8 @@ import { configureStore } from '@reduxjs/toolkit'
 import authReducer from '@/features/auth/authSlice'
 import usersReducer from '@/features/users/usersSlice'
 import tenantsReducer from '@/features/tenants/tenantsSlice'
+import subscriptionPlansReducer from '@/features/subscriptions/subscriptionPlansSlice'
+import companiesReducer from '@/features/companies/companiesSlice'
 import civilReducer from '@/features/civil/civilSlice'
 import notificationsReducer from '@/features/notifications/notificationsSlice'
 import clientsReducer        from '@/features/clients/clientsSlice'
@@ -15,12 +17,15 @@ import farmsReducer, { cyclesReducer, agricultureAuxReducer } from '@/features/a
 import servicesReducer, {
   genInvoicesReducer, subscriptionsReducer, generalAuxReducer,
 } from '@/features/general/generalSlice'
+import mindMapsReducer from '@/features/mindMaps/mindMapsSlice'
 
 export const store = configureStore({
   reducer: {
-    auth:           authReducer,
-    users:          usersReducer,
-    tenants:        tenantsReducer,
+    auth:              authReducer,
+    users:             usersReducer,
+    tenants:           tenantsReducer,
+    subscriptionPlans: subscriptionPlansReducer,
+    companies:      companiesReducer,
     civil:          civilReducer,
     notifications:  notificationsReducer,
     clients:        clientsReducer,
@@ -39,6 +44,7 @@ export const store = configureStore({
     genInvoices:     genInvoicesReducer,
     subscriptions:   subscriptionsReducer,
     generalAux:      generalAuxReducer,
+    mindMaps:        mindMapsReducer,
   },
   devTools: typeof __DEV__ !== 'undefined' ? __DEV__ : true,
 })

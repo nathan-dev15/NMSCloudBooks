@@ -10,7 +10,9 @@ import { Badge, StatusBadge } from '@/components/ui/Badge'
 import Alert from '@/components/ui/Alert'
 import type { Tenant } from '@/types'
 
-const PLAN_COLORS = { basic: 'teal', pro: 'cyan', enterprise: 'purple' } as const
+const PLAN_COLORS: Record<string, 'teal' | 'cyan' | 'purple' | 'blue' | 'green'> = {
+  starter: 'green', basic: 'teal', pro: 'cyan', enterprise: 'purple', custom: 'blue',
+}
 
 export default function TenantsPage() {
   const dispatch = useAppDispatch()
@@ -38,11 +40,26 @@ export default function TenantsPage() {
     {
       key: 'plan',
       header: 'Plan',
-      render: (t) => (
-        <Badge color={PLAN_COLORS[t.plan as keyof typeof PLAN_COLORS] ?? 'teal'}>
-          {t.plan.charAt(0).toUpperCase() + t.plan.slice(1)}
-        </Badge>
-      ),
+      render: (t) => {
+        const slug = t.subscription_plan?.slug ?? ''
+        const name = t.subscription_plan?.name ?? 'No Plan'
+        const PERIOD_LABELS: Record<string, { label: string; emoji: string; color: string }> = {
+          trial:     { label: '1 mo free',  emoji: '🎁', color: '#34d399' },
+          quarterly: { label: '3 months',   emoji: '📅', color: '#2aacb5' },
+          yearly:    { label: '1 year',     emoji: '🏆', color: '#9d4edd' },
+        }
+        const period = t.billing_period ? PERIOD_LABELS[t.billing_period] : null
+        return (
+          <div className="flex flex-col gap-1">
+            <Badge color={PLAN_COLORS[slug] ?? 'teal'}>{name}</Badge>
+            {period && (
+              <span style={{ fontSize: '11px', color: period.color, fontWeight: 500 }}>
+                {period.emoji} {period.label}
+              </span>
+            )}
+          </div>
+        )
+      },
     },
     {
       key: 'modules',

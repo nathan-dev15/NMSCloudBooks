@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { logout } from '@/features/auth/authSlice'
+import { useThemeSettings } from '@/contexts/ThemeSettingsContext'
 import TweaksPanel from '@/components/ui/TweaksPanel'
 
 interface HeaderProps {
@@ -14,35 +15,6 @@ const roleLabels: Record<string, string> = {
   admin:          'Admin',
   primary_user:   'Primary User',
   secondary_user: 'Secondary User',
-}
-
-// Map route segments to readable names for breadcrumb
-const ROUTE_LABELS: Record<string, string> = {
-  civil:                  'Civil',
-  projects:               'Projects',
-  requests:               'Mat. Requests',
-  clients:                'Clients',
-  invoices:               'Invoices',
-  'purchase-orders':      'Purchase Orders',
-  'purchase-requisitions':'Requisitions',
-  'delivery-challans':    'Delivery Challans',
-  inventory:              'Inventory',
-  retail:                 'Retail',
-  agriculture:            'Agriculture',
-  'general-billing':      'General Billing',
-  settings:               'Settings',
-  'error-logs':           'Error Logs',
-  tenants:                'Tenants',
-  users:                  'Users',
-  blocks:                 'Block',
-}
-
-function useBreadcrumb() {
-  const location = useLocation()
-  const segments = location.pathname.split('/').filter(Boolean)
-  return segments
-    .filter((s) => !s.match(/^\d+$/)) // skip numeric IDs
-    .map((s) => ROUTE_LABELS[s] ?? s)
 }
 
 function IconBtn({
@@ -86,9 +58,9 @@ function IconBtn({
 export default function Header({ title, actions }: HeaderProps) {
   const dispatch = useAppDispatch()
   const { user } = useAppSelector((s) => s.auth)
+  const { mode, toggleMode } = useThemeSettings()
   const [tweaksOpen, setTweaksOpen] = useState(false)
   const [hasNotif] = useState(false)
-  const breadcrumb = useBreadcrumb()
 
   const initials = user?.full_name
     ? user.full_name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
@@ -104,39 +76,29 @@ export default function Header({ title, actions }: HeaderProps) {
           justifyContent: 'space-between',
           padding: '0 20px',
           flexShrink: 0,
-          background: 'rgba(12,12,15,0.9)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
+          background: 'var(--bg-sidebar)',
           borderBottom: '1px solid var(--border)',
         }}
       >
-        {/* Left: breadcrumb */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-          {breadcrumb.length > 0 ? (
-            breadcrumb.map((crumb, i) => (
-              <span key={crumb + i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                {i > 0 && (
-                  <span style={{ color: 'var(--text-5)', fontSize: '13px' }}>/</span>
-                )}
-                <span
-                  style={{
-                    fontSize: '13px',
-                    fontFamily: i < breadcrumb.length - 1 ? 'var(--font-mono)' : undefined,
-                    fontWeight: i === breadcrumb.length - 1 ? 600 : 400,
-                    color: i === breadcrumb.length - 1 ? 'var(--text-1)' : 'var(--text-4)',
-                    letterSpacing: '-0.005em',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {crumb}
-                </span>
-              </span>
-            ))
-          ) : (
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-1)' }}>
-              {title}
-            </span>
-          )}
+        {/* Left: page title */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div
+            style={{
+              width: '3px', height: '18px',
+              borderRadius: '2px',
+              background: 'var(--accent)',
+              flexShrink: 0,
+            }}
+          />
+          <h1 style={{
+            fontSize: '15px',
+            fontWeight: 600,
+            color: 'var(--text-1)',
+            letterSpacing: '-0.01em',
+            margin: 0,
+          }}>
+            {title}
+          </h1>
         </div>
 
         {/* Right */}
@@ -144,58 +106,86 @@ export default function Header({ title, actions }: HeaderProps) {
           {actions && (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>{actions}</div>
-              <div style={{ width: '1px', height: '20px', background: 'var(--border-strong)', margin: '0 6px' }} />
+              <div style={{ width: '1px', height: '20px', background: 'var(--border-strong)', margin: '0 8px' }} />
             </>
           )}
 
           {user && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+
               {/* Role badge */}
-              <span
-                className="hidden md:inline-flex"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  padding: '2px 8px',
-                  borderRadius: 'var(--r-xl)',
-                  fontSize: '11px',
-                  fontWeight: 500,
-                  background: 'var(--accent-bg)',
-                  color: 'var(--accent)',
-                  border: '1px solid rgba(94,234,212,0.15)',
-                  whiteSpace: 'nowrap',
-                }}
-              >
+              <span style={{
+                padding: '3px 9px',
+                borderRadius: 'var(--r-xl)',
+                fontSize: '11px',
+                fontWeight: 500,
+                background: 'var(--accent-bg)',
+                color: 'var(--accent)',
+                border: '1px solid var(--border-strong)',
+                whiteSpace: 'nowrap',
+                marginRight: '4px',
+              }}>
                 {roleLabels[user.role] ?? user.role}
               </span>
 
-              {/* Avatar */}
-              <div
-                style={{
-                  width: '28px', height: '28px',
-                  borderRadius: '50%',
-                  background: 'var(--accent)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'var(--accent-ink)',
-                  fontSize: '10px', fontWeight: 700,
-                  flexShrink: 0,
-                  marginLeft: '2px',
-                }}
+              {/* Avatar — links to profile */}
+              <Link
+                to="/profile"
+                title="My Profile"
+                style={{ textDecoration: 'none', flexShrink: 0, lineHeight: 0 }}
               >
-                {initials}
-              </div>
+                <div
+                  style={{
+                    width: '28px', height: '28px',
+                    borderRadius: '50%',
+                    background: 'var(--accent)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'var(--accent-ink)',
+                    fontSize: '10px', fontWeight: 700,
+                    marginRight: '4px',
+                    transition: 'opacity 150ms, box-shadow 150ms',
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.opacity = '0.85'
+                    ;(e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 2px var(--accent)'
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.opacity = '1'
+                    ;(e.currentTarget as HTMLElement).style.boxShadow = 'none'
+                  }}
+                >
+                  {initials}
+                </div>
+              </Link>
 
-              <div style={{ width: '1px', height: '16px', background: 'var(--border)', margin: '0 2px' }} />
+              <div style={{ width: '1px', height: '16px', background: 'var(--border-strong)', margin: '0 4px' }} />
+
+              {/* Light / dark toggle */}
+              <IconBtn
+                onClick={toggleMode}
+                title={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+              >
+                {mode === 'light' ? (
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6}
+                      d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75 9.75 9.75 0 0 1 8.25 6a9.72 9.72 0 0 1 .252-2.247A9.751 9.751 0 0 0 3 13.5a9.75 9.75 0 0 0 9.75 9.75c4.108 0 7.639-2.526 9.002-6.248Z" />
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6}
+                      d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+                  </svg>
+                )}
+              </IconBtn>
 
               {/* Notification bell */}
               <IconBtn title="Notifications">
                 {hasNotif && (
                   <span style={{
-                    position: 'absolute', top: '5px', right: '5px',
-                    width: '7px', height: '7px',
+                    position: 'absolute', top: '6px', right: '6px',
+                    width: '6px', height: '6px',
                     borderRadius: '50%',
                     background: 'var(--status-error)',
-                    border: '1.5px solid var(--bg-sidebar)',
                   }} />
                 )}
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -205,10 +195,10 @@ export default function Header({ title, actions }: HeaderProps) {
               </IconBtn>
 
               {/* Portal tweaks */}
-              <IconBtn onClick={() => setTweaksOpen(true)} title="Portal Tweaks">
+              <IconBtn onClick={() => setTweaksOpen(true)} title="Customize theme">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6}
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6}
                     d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
@@ -227,11 +217,12 @@ export default function Header({ title, actions }: HeaderProps) {
                   color: 'var(--text-3)',
                   fontSize: '12px', fontWeight: 500,
                   cursor: 'pointer',
+                  marginLeft: '2px',
                   transition: 'background 150ms, border-color 150ms, color 150ms',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(252,165,165,0.08)'
-                  e.currentTarget.style.borderColor = 'rgba(252,165,165,0.3)'
+                  e.currentTarget.style.background = 'rgba(153,27,27,0.08)'
+                  e.currentTarget.style.borderColor = 'rgba(153,27,27,0.3)'
                   e.currentTarget.style.color = 'var(--status-error)'
                 }}
                 onMouseLeave={(e) => {

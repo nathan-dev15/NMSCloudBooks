@@ -1,6 +1,6 @@
 import { useState, useRef, useLayoutEffect, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, Link, useLocation } from 'react-router-dom'
 import { useAppSelector } from '@/app/hooks'
 import type { UserRole } from '@/types'
 
@@ -75,6 +75,12 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
     </svg>
   ),
+  Plans: () => (
+    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6}
+        d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185ZM9.75 9h.008v.008H9.75V9Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm4.125 4.5h.008v.008h-.008V13.5Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+    </svg>
+  ),
   ErrorLogs: () => (
     <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6}
@@ -105,12 +111,26 @@ const Icons = {
         d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
     </svg>
   ),
+  Company: () => (
+    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6}
+        d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
+    </svg>
+  ),
+  MindMap: () => (
+    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6}
+        d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.764m3.42 3.42a6.776 6.776 0 00-3.42-3.42" />
+    </svg>
+  ),
 }
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard',         to: '/',                        icon: <Icons.Dashboard />,     roles: ['super_admin', 'admin', 'primary_user', 'secondary_user'], group: 'Overview' },
   { label: 'Tenants',           to: '/tenants',                 icon: <Icons.Buildings />,     roles: ['super_admin'],                                             group: 'Platform' },
-  { label: 'Users',             to: '/users',                   icon: <Icons.Users />,         roles: ['super_admin', 'admin'],                                     group: 'Platform' },
+  { label: 'Plans',             to: '/subscription-plans',      icon: <Icons.Plans />,         roles: ['super_admin'],                                             group: 'Platform' },
+  { label: 'Users',             to: '/users',                   icon: <Icons.Users />,         roles: ['super_admin', 'admin'],                                    group: 'Platform' },
+  { label: 'My Companies',      to: '/companies',               icon: <Icons.Company />,       roles: ['admin'],                                                    group: 'Platform' },
   { label: 'Projects',          to: '/civil/projects',          icon: <Icons.Civil />,         roles: ['super_admin', 'admin', 'primary_user', 'secondary_user'],   group: 'Civil' },
   { label: 'Mat. Requests',     to: '/civil/requests',          icon: <Icons.List />,          roles: ['super_admin', 'admin', 'primary_user', 'secondary_user'],   group: 'Civil' },
   { label: 'Clients',           to: '/clients',                 icon: <Icons.Clients />,       roles: ['super_admin', 'admin', 'primary_user', 'secondary_user'],   group: 'Finance' },
@@ -122,11 +142,12 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Retail',            to: '/retail',                  icon: <Icons.Retail />,        roles: ['super_admin', 'admin', 'primary_user', 'secondary_user'],   group: 'Stock' },
   { label: 'Agriculture',       to: '/agriculture',             icon: <Icons.Agriculture />,   roles: ['super_admin', 'admin', 'primary_user', 'secondary_user'],   group: 'Stock' },
   { label: 'General Billing',   to: '/general-billing',         icon: <Icons.Billing />,       roles: ['super_admin', 'admin', 'primary_user', 'secondary_user'],   group: 'Stock' },
+  { label: 'Mind Maps',         to: '/mind-maps',               icon: <Icons.MindMap />,       roles: ['super_admin', 'admin', 'primary_user', 'secondary_user'],   group: 'Tools' },
   { label: 'Settings',          to: '/settings',                icon: <Icons.Settings />,      roles: ['super_admin', 'admin'],                                     group: 'System' },
   { label: 'Error Logs',        to: '/error-logs',              icon: <Icons.ErrorLogs />,     roles: ['super_admin'],                                              group: 'System' },
 ]
 
-const GROUP_ORDER = ['Overview', 'Platform', 'Civil', 'Finance', 'Stock', 'System']
+const GROUP_ORDER = ['Overview', 'Platform', 'Civil', 'Finance', 'Stock', 'Tools', 'System']
 
 const roleColors: Record<string, string> = {
   super_admin:    'linear-gradient(135deg, #5eead4 0%, #0c7a82 100%)',
@@ -135,12 +156,6 @@ const roleColors: Record<string, string> = {
   secondary_user: 'linear-gradient(135deg, #fbbf24 0%, #b45309 100%)',
 }
 
-const roleLabels: Record<string, string> = {
-  super_admin:    'Super Admin',
-  admin:          'Admin',
-  primary_user:   'Primary User',
-  secondary_user: 'Secondary User',
-}
 
 interface TooltipState {
   label: string
@@ -247,6 +262,52 @@ export default function Sidebar() {
 
   return (
     <>
+      {/* Wrapper gives the half-overlapping toggle button something to anchor to */}
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+
+      {/* Half-overlapping collapse/expand toggle — spec: 24×24 circle at right edge */}
+      <button
+        onClick={toggle}
+        title={collapsed ? 'Expand sidebar (Ctrl+B)' : 'Collapse sidebar (Ctrl+B)'}
+        style={{
+          position: 'absolute',
+          right: '-12px',
+          top: '20px',        /* vertically centred in the 64px brand header */
+          zIndex: 20,
+          width: '24px', height: '24px',
+          borderRadius: '50%',
+          border: '1px solid var(--border-strong)',
+          background: 'var(--bg-card)',
+          color: 'var(--text-4)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+          transition: 'background 150ms, border-color 150ms, color 150ms, transform 150ms',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'var(--bg-active)'
+          e.currentTarget.style.borderColor = 'var(--accent)'
+          e.currentTarget.style.color = 'var(--accent)'
+          e.currentTarget.style.transform = 'scale(1.12)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'var(--bg-card)'
+          e.currentTarget.style.borderColor = 'var(--border-strong)'
+          e.currentTarget.style.color = 'var(--text-4)'
+          e.currentTarget.style.transform = 'scale(1)'
+        }}
+      >
+        {collapsed ? (
+          <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
+        ) : (
+          <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+          </svg>
+        )}
+      </button>
+
       <aside
         ref={(el) => { sidebarRef.current = el }}
         className={collapsed ? 'sidebar-collapsed' : ''}
@@ -258,7 +319,6 @@ export default function Sidebar() {
           minHeight: '100vh',
           display: 'flex',
           flexDirection: 'column',
-          flexShrink: 0,
           overflow: 'hidden',
         }}
       >
@@ -300,38 +360,6 @@ export default function Sidebar() {
             </p>
           </div>
 
-          {/* Collapse toggle */}
-          {!collapsed && (
-            <button
-              onClick={toggle}
-              title="Collapse sidebar (Ctrl+B)"
-              style={{
-                width: '24px', height: '24px',
-                borderRadius: '50%',
-                border: '1px solid var(--border-strong)',
-                background: 'var(--bg-card)',
-                color: 'var(--text-4)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer',
-                flexShrink: 0,
-                transition: 'background 150ms, border-color 150ms, color 150ms',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--bg-active)'
-                e.currentTarget.style.borderColor = 'var(--accent)'
-                e.currentTarget.style.color = 'var(--accent)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--bg-card)'
-                e.currentTarget.style.borderColor = 'var(--border-strong)'
-                e.currentTarget.style.color = 'var(--text-4)'
-              }}
-            >
-              <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-          )}
         </div>
 
         {/* ── Nav rail ─────────────────────────────── */}
@@ -471,88 +499,84 @@ export default function Sidebar() {
             </div>
           ))}
 
-          {/* Expand toggle (collapsed mode only) */}
-          {collapsed && (
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
-              <button
-                onClick={toggle}
-                title="Expand sidebar (Ctrl+B)"
-                style={{
-                  width: '28px', height: '28px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border-strong)',
-                  background: 'transparent',
-                  color: 'var(--text-4)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer',
-                  transition: 'background 150ms, color 150ms',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'var(--bg-active)'
-                  e.currentTarget.style.color = 'var(--accent)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent'
-                  e.currentTarget.style.color = 'var(--text-4)'
-                }}
-              >
-                <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-          )}
         </nav>
 
-        {/* ── Footer ────────────────────────────────── */}
+        {/* ── Footer — profile link ─────────────────── */}
         {user && (
-          <div style={{
-            padding: '10px 8px',
-            borderTop: '1px solid var(--border)',
-            flexShrink: 0,
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: collapsed ? '8px 0 8px 12px' : '8px 10px',
-              borderRadius: 'var(--r-lg)',
-              background: 'rgba(255,255,255,0.02)',
-              border: '1px solid var(--border)',
-            }}>
-              <div
-                title={collapsed ? `${user.full_name} · ${role ? roleLabels[role] : ''}` : undefined}
-                style={{
-                  width: '32px', height: '32px',
-                  borderRadius: '50%',
-                  background: role ? (roleColors[role] ?? roleColors['admin']) : roleColors['admin'],
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '11px', fontWeight: 700,
-                  flexShrink: 0,
-                }}
-              >
-                {initials}
-              </div>
+          <div style={{ padding: '10px 8px', borderTop: '1px solid var(--border)', flexShrink: 0 }}>
+            {(() => {
+              const isProfileActive = location.pathname === '/profile'
+              return (
+                <Link
+                  to="/profile"
+                  title={collapsed ? `${user.full_name} · Edit profile` : 'Edit profile'}
+                  style={{ textDecoration: 'none', display: 'block' }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: collapsed ? '8px 0 8px 12px' : '8px 10px',
+                      borderRadius: 'var(--r-lg)',
+                      background: isProfileActive ? 'var(--accent-bg)' : 'rgba(255,255,255,0.02)',
+                      border: `1px solid ${isProfileActive ? 'var(--border-strong)' : 'var(--border)'}`,
+                      cursor: 'pointer',
+                      transition: 'background 150ms, border-color 150ms',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isProfileActive) {
+                        (e.currentTarget as HTMLElement).style.background = 'var(--bg-hover)'
+                        ;(e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isProfileActive) {
+                        (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)'
+                        ;(e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'
+                      }
+                    }}
+                  >
+                    {/* Avatar circle */}
+                    <div style={{
+                      width: '32px', height: '32px',
+                      borderRadius: '50%',
+                      background: role ? (roleColors[role] ?? roleColors['admin']) : roleColors['admin'],
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: 'white',
+                      fontSize: '11px', fontWeight: 700,
+                      flexShrink: 0,
+                    }}>
+                      {initials}
+                    </div>
 
-              <div className="sidebar-brand-text" style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                <p style={{
-                  fontSize: '13px', fontWeight: 600,
-                  color: 'var(--text-1)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}>
-                  {user.full_name}
-                </p>
-                <p style={{ fontSize: '11px', color: 'var(--text-4)', whiteSpace: 'nowrap' }}>
-                  {role ? roleLabels[role] : ''}
-                </p>
-              </div>
-            </div>
+                    {/* Name + hint */}
+                    <div className="sidebar-brand-text" style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                      <p style={{
+                        fontSize: '13px', fontWeight: 600, color: 'var(--text-1)',
+                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                      }}>
+                        {user.full_name}
+                      </p>
+                      <p style={{ fontSize: '11px', color: 'var(--accent)', whiteSpace: 'nowrap' }}>
+                        Edit profile
+                      </p>
+                    </div>
+
+                    {/* Chevron */}
+                    <div className="sidebar-brand-text" style={{ flexShrink: 0, color: 'var(--text-4)' }}>
+                      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                      </svg>
+                    </div>
+                  </div>
+                </Link>
+              )
+            })()}
           </div>
         )}
       </aside>
+      </div>{/* end position:relative wrapper */}
 
       {/* Floating tooltip portal */}
       {tooltip && createPortal(

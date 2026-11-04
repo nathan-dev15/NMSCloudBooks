@@ -2,6 +2,7 @@ import { Navigate, Outlet } from 'react-router-dom'
 import { useAppSelector } from '@/app/hooks'
 import Sidebar from './Sidebar'
 import Spinner from '@/components/ui/Spinner'
+import BackgroundAnimation from './BackgroundAnimation'
 
 export default function AppLayout() {
   const { isAuthenticated, isLoading } = useAppSelector((s) => s.auth)
@@ -30,11 +31,14 @@ export default function AppLayout() {
   if (!isAuthenticated) return <Navigate to="/login" replace />
 
   return (
-    <div className="flex min-h-screen" style={{ background: 'var(--bg-canvas)' }}>
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden" style={{ background: 'var(--bg-canvas)' }}>
-        <Outlet />
+    <>
+      <BackgroundAnimation />
+      <div className="flex min-h-screen" style={{ position: 'relative', zIndex: 1 }}>
+        <Sidebar />
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <Outlet />
+        </div>
       </div>
-    </div>
+    </>
   )
 }

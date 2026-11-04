@@ -11,11 +11,16 @@ import authReducer, { login } from '@/features/auth/authSlice'
 // Helpers
 // ---------------------------------------------------------------------------
 
-jest.mock('@/features/auth/authSlice', () => ({
-  __esModule: true,
-  ...jest.requireActual('@/features/auth/authSlice'),
-  login: jest.fn(),
-}))
+jest.mock('@/features/auth/authSlice', () => {
+  const actual = jest.requireActual('@/features/auth/authSlice')
+  const mockedLogin = Object.assign(jest.fn(), {
+    fulfilled: actual.login.fulfilled,
+    rejected:  actual.login.rejected,
+    pending:   actual.login.pending,
+    typePrefix: actual.login.typePrefix,
+  })
+  return { __esModule: true, ...actual, login: mockedLogin }
+})
 
 const mockedLogin = login as jest.MockedFunction<typeof login>
 
@@ -82,7 +87,7 @@ describe('LoginPage rendering', () => {
         error: null,
       },
     })
-    expect(screen.getByRole('button')).toBeDisabled()
+    expect(screen.getByRole('button', { name: /signing in/i })).toBeDisabled()
     expect(screen.getByText(/signing in/i)).toBeInTheDocument()
   })
 })
@@ -118,7 +123,7 @@ describe('LoginPage interactions', () => {
 
     await userEvent.type(screen.getByPlaceholderText('you@company.com'), 'admin@test.com')
     await userEvent.type(screen.getByPlaceholderText('••••••••'), 'Password123')
-    fireEvent.submit(screen.getByRole('button'))
+    fireEvent.submit(screen.getByRole('button', { name: /sign in/i }))
 
     await waitFor(() => {
       expect(mockedLogin).toHaveBeenCalledWith({
@@ -130,7 +135,7 @@ describe('LoginPage interactions', () => {
 
   it('does not submit with empty email', async () => {
     renderLoginPage()
-    fireEvent.submit(screen.getByRole('button'))
+    fireEvent.submit(screen.getByRole('button', { name: /sign in/i }))
     expect(mockedLogin).not.toHaveBeenCalled()
   })
 })

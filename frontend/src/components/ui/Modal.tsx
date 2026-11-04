@@ -9,6 +9,8 @@ interface ModalProps {
   children: React.ReactNode
   size?: 'sm' | 'md' | 'lg' | 'xl'
   footer?: React.ReactNode
+  /** When true, clicking the backdrop and pressing Escape do not close the modal */
+  static?: boolean
 }
 
 const sizes = {
@@ -18,14 +20,26 @@ const sizes = {
   xl: 'max-w-4xl',
 }
 
-export default function Modal({ open, onClose, title, children, size = 'md', footer }: ModalProps) {
+export default function Modal({ open, onClose, title, children, size = 'md', footer, static: isStatic }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      if (isStatic) {
+        // shake the dialog to signal it cannot be dismissed
+        dialogRef.current?.animate(
+          [{ transform: 'scale(1)' }, { transform: 'scale(1.02)' }, { transform: 'scale(1)' }],
+          { duration: 200, easing: 'ease-out' },
+        )
+      } else {
+        onClose()
+      }
+    }
     if (open) document.addEventListener('keydown', handleKey)
     return () => document.removeEventListener('keydown', handleKey)
-  }, [open, onClose])
+  }, [open, onClose, isStatic])
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''
@@ -38,52 +52,60 @@ export default function Modal({ open, onClose, title, children, size = 'md', foo
     <div
       ref={overlayRef}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
-      style={{ background: 'rgba(6, 9, 18, 0.8)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
-      onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
+      style={{ background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+      onClick={(e) => {
+        if (e.target !== overlayRef.current) return
+        if (isStatic) {
+          dialogRef.current?.animate(
+            [{ transform: 'scale(1)' }, { transform: 'scale(1.02)' }, { transform: 'scale(1)' }],
+            { duration: 200, easing: 'ease-out' },
+          )
+        } else {
+          onClose()
+        }
+      }}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal
         aria-labelledby="modal-title"
-        className={clsx(
-          'w-full flex flex-col max-h-[90vh] animate-scale-in',
-          sizes[size],
-        )}
+        className={clsx('w-full flex flex-col max-h-[90vh] animate-scale-in', sizes[size])}
         style={{
-          background: 'linear-gradient(145deg, #10151f 0%, #1a2332 100%)',
-          border: '1px solid rgba(12, 122, 130, 0.25)',
-          borderRadius: '20px',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(12,122,130,0.15)',
+          background: '#ffffff',
+          border: '1px solid #e2e8f0',
+          borderRadius: '16px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.08)',
         }}
       >
         {/* ── Header ─────────────────────────────── */}
         <div
           className="flex items-center justify-between px-6 py-4 flex-shrink-0"
-          style={{ borderBottom: '1px solid rgba(12,122,130,0.15)' }}
+          style={{ borderBottom: '1px solid #f1f5f9' }}
         >
           <div className="flex items-center gap-3">
             <div
               className="w-1 h-5 rounded-full"
-              style={{ background: 'linear-gradient(180deg, #0c7a82 0%, #00d4ff 100%)' }}
+              style={{ background: 'linear-gradient(180deg, #0c7a82 0%, #00b4cc 100%)' }}
             />
-            <h2 id="modal-title" className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+            <h2 id="modal-title" className="text-base font-semibold" style={{ color: '#0f172a' }}>
               {title}
             </h2>
           </div>
           <button
             onClick={onClose}
             aria-label="Close modal"
-            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200"
-            style={{ color: 'var(--text-muted)', border: '1px solid rgba(12,122,130,0.15)' }}
+            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-150"
+            style={{ color: '#94a3b8', border: '1px solid #e2e8f0', background: 'transparent' }}
             onMouseEnter={(e) => {
-              ;(e.currentTarget as HTMLElement).style.background = 'rgba(255,107,53,0.12)'
-              ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,107,53,0.3)'
-              ;(e.currentTarget as HTMLElement).style.color = '#ff6b35'
+              ;(e.currentTarget as HTMLElement).style.background = '#fef2f2'
+              ;(e.currentTarget as HTMLElement).style.borderColor = '#fca5a5'
+              ;(e.currentTarget as HTMLElement).style.color = '#ef4444'
             }}
             onMouseLeave={(e) => {
               ;(e.currentTarget as HTMLElement).style.background = 'transparent'
-              ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(12,122,130,0.15)'
-              ;(e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'
+              ;(e.currentTarget as HTMLElement).style.borderColor = '#e2e8f0'
+              ;(e.currentTarget as HTMLElement).style.color = '#94a3b8'
             }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -99,7 +121,7 @@ export default function Modal({ open, onClose, title, children, size = 'md', foo
         {footer && (
           <div
             className="flex items-center justify-end gap-3 px-6 py-4 flex-shrink-0"
-            style={{ borderTop: '1px solid rgba(12,122,130,0.12)' }}
+            style={{ borderTop: '1px solid #f1f5f9' }}
           >
             {footer}
           </div>

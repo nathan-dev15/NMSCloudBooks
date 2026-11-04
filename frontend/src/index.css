@@ -118,12 +118,12 @@
 
   /* ── Custom scrollbar ─────────────────────── */
   ::-webkit-scrollbar          { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track    { background: var(--dark-800); }
-  ::-webkit-scrollbar-thumb    { background: var(--primary-700); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--primary-600); }
+  ::-webkit-scrollbar-track    { background: var(--bg-card); }
+  ::-webkit-scrollbar-thumb    { background: var(--border-strong); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-5); }
 
   /* Firefox */
-  * { scrollbar-width: thin; scrollbar-color: var(--primary-700) var(--dark-800); }
+  * { scrollbar-width: thin; scrollbar-color: var(--border-strong) var(--bg-card); }
 
   /* ── Selection ────────────────────────────── */
   ::selection {
@@ -279,6 +279,20 @@
     box-shadow: 0 0 0 3px rgba(12, 122, 130, 0.15);
     background: var(--dark-800);
   }
+
+  /* ── Light-mode form (inside white modals) ─────────────────────── */
+  .form-light .input-dark {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
+  }
+  .form-light .input-dark::placeholder { color: #94a3b8; }
+  .form-light .input-dark:focus {
+    background: #ffffff;
+    border-color: #0c7a82;
+    box-shadow: 0 0 0 3px rgba(12, 122, 130, 0.12);
+  }
+  .form-light label { color: #475569 !important; }
 
   /* ── Table row ────────────────────────────── */
   .table-row-dark {
@@ -570,4 +584,184 @@ html.density-comfy {
 .tabular-nums {
   font-family: var(--font-mono);
   font-feature-settings: 'tnum';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BACKGROUND LIGHT ANIMATION
+   All colors via CSS variables — zero hardcoded values.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Subtle dot grid — adapts to light/dark via --border-strong */
+.bg-anim-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, var(--border-strong) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Base orb — color entirely from --accent-glow token */
+.bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, var(--accent-glow) 0%, transparent 68%);
+  will-change: transform;
+}
+
+/* Orb 1 — top-left, large, slow */
+.bg-orb-1 {
+  width: 700px;
+  height: 700px;
+  top: -200px;
+  left: -100px;
+  animation: bgOrb1 20s ease-in-out infinite;
+}
+
+/* Orb 2 — bottom-right, medium */
+.bg-orb-2 {
+  width: 520px;
+  height: 520px;
+  bottom: -120px;
+  right: -60px;
+  animation: bgOrb2 26s ease-in-out infinite;
+  animation-delay: -9s;
+}
+
+/* Orb 3 — center-right area, leisurely orbit */
+.bg-orb-3 {
+  width: 440px;
+  height: 440px;
+  top: 32%;
+  right: 18%;
+  animation: bgOrb3 32s ease-in-out infinite;
+  animation-delay: -16s;
+}
+
+/* Orb 4 — bottom-center, smaller, livelier */
+.bg-orb-4 {
+  width: 340px;
+  height: 340px;
+  bottom: 12%;
+  left: 28%;
+  animation: bgOrb4 22s ease-in-out infinite;
+  animation-delay: -5s;
+}
+
+/* Keyframes — transform only, no color values */
+@keyframes bgOrb1 {
+  0%,  100% { transform: translate(0,    0)    scale(1);    }
+  25%        { transform: translate(60px, -40px) scale(1.08); }
+  50%        { transform: translate(30px,  70px) scale(0.94); }
+  75%        { transform: translate(-40px, 30px) scale(1.04); }
+}
+@keyframes bgOrb2 {
+  0%,  100% { transform: translate(0,     0)     scale(1);    }
+  30%        { transform: translate(-60px, 50px)  scale(1.10); }
+  65%        { transform: translate(40px, -70px)  scale(0.93); }
+}
+@keyframes bgOrb3 {
+  0%,  100% { transform: translate(0,    0)     scale(1);    }
+  40%        { transform: translate(70px, -50px) scale(1.06); }
+  70%        { transform: translate(-50px, 40px) scale(0.96); }
+}
+@keyframes bgOrb4 {
+  0%,  100% { transform: translate(0,     0)     scale(1);    }
+  35%        { transform: translate(50px, -40px)  scale(1.09); }
+  65%        { transform: translate(-35px, 30px)  scale(0.95); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SWEETALERT2 — DESIGN SYSTEM OVERRIDES
+   All colors via CSS variables.
+   ═══════════════════════════════════════════════════════════════ */
+.swal2-popup {
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--r-xl) !important;
+  box-shadow: var(--shadow-glass) !important;
+  font-family: var(--font-sans) !important;
+  padding: 28px !important;
+}
+.swal2-title {
+  font-family: var(--font-sans) !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: var(--text-1) !important;
+  padding: 0 0 8px !important;
+}
+.swal2-html-container {
+  font-family: var(--font-sans) !important;
+  font-size: 13px !important;
+  color: var(--text-3) !important;
+  margin: 0 !important;
+}
+.swal2-icon {
+  margin: 12px auto 18px !important;
+  width: 56px !important;
+  height: 56px !important;
+}
+.swal2-icon.swal2-question { border-color: var(--accent) !important; color: var(--accent) !important; }
+.swal2-icon.swal2-success  { border-color: var(--status-done) !important; }
+.swal2-icon.swal2-success [class^='swal2-success-line'] { background: var(--status-done) !important; }
+.swal2-icon.swal2-success .swal2-success-ring { border-color: var(--status-done) !important; opacity: 0.35; }
+.swal2-timer-progress-bar { background: var(--accent) !important; }
+.swal2-actions {
+  gap: 10px !important;
+  margin-top: 22px !important;
+}
+.swal2-confirm {
+  border-radius: var(--r-md) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 9px 20px !important;
+  box-shadow: none !important;
+}
+.swal2-cancel {
+  border-radius: var(--r-md) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 9px 20px !important;
+  background: var(--bg-card-hi) !important;
+  color: var(--text-2) !important;
+  border: 1px solid var(--border-strong) !important;
+  box-shadow: none !important;
+}
+.swal2-cancel:hover { background: var(--bg-hover) !important; }
+
+/* ── Mind Map animations ─────────────────── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.react-flow__node.search-match {
+  outline: 2px solid var(--accent, #5eead4);
+  outline-offset: 3px;
+  border-radius: 14px;
+  z-index: 10 !important;
+}
+
+.react-flow__node.search-dim {
+  opacity: 0.25;
+  transition: opacity 200ms;
+}
+
+/* ── Drag-to-connect: improved handle visibility ── */
+.react-flow__handle {
+  transition: box-shadow 150ms ease, opacity 150ms ease;
+}
+.react-flow__node:hover .react-flow__handle {
+  box-shadow: 0 0 6px 2px rgba(94,234,212,0.45);
+}
+.react-flow__handle:hover {
+  box-shadow: 0 0 10px 3px rgba(94,234,212,0.7) !important;
+}
+
+/* ── Edge labels ── */
+.react-flow__edge-textbg {
+  rx: 6;
+  ry: 6;
+}
+.react-flow__edge-text {
+  pointer-events: all;
 }

@@ -5,6 +5,7 @@ import { fetchCurrentUser } from '@/features/auth/authSlice'
 
 // Layout
 import AppLayout from '@/components/layout/AppLayout'
+import PublicPageLayout from '@/components/layout/PublicPageLayout'
 import RoleGate from '@/components/layout/RoleGate'
 
 // Core pages
@@ -13,8 +14,10 @@ import ForgotPasswordPage   from '@/pages/ForgotPasswordPage'
 import ResetPasswordPage    from '@/pages/ResetPasswordPage'
 import DashboardPage         from '@/pages/DashboardPage'
 import UsersPage             from '@/pages/UsersPage'
-import TenantsPage           from '@/pages/TenantsPage'
-import NotFoundPage          from '@/pages/NotFoundPage'
+import TenantsPage              from '@/pages/TenantsPage'
+import CompaniesPage            from '@/pages/CompaniesPage'
+import SubscriptionPlansPage    from '@/pages/SubscriptionPlansPage'
+import NotFoundPage             from '@/pages/NotFoundPage'
 
 // Civil module pages
 import ProjectsPage          from '@/pages/civil/ProjectsPage'
@@ -32,6 +35,9 @@ import RetailPage            from '@/pages/RetailPage'
 import AgriculturePage      from '@/pages/AgriculturePage'
 import GeneralBillingPage   from '@/pages/GeneralBillingPage'
 import ErrorLogsPage        from '@/pages/ErrorLogsPage'
+import ProfilePage           from '@/pages/ProfilePage'
+import MindMapsPage          from '@/pages/MindMapsPage'
+import MindMapEditorPage     from '@/pages/MindMapEditorPage'
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -64,6 +70,12 @@ export default function App() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password"  element={<ResetPasswordPage />} />
 
+      {/* Public tools — no auth required */}
+      <Route element={<PublicPageLayout />}>
+        <Route path="mind-maps" element={<MindMapsPage />} />
+        <Route path="mind-maps/:id" element={<MindMapEditorPage />} />
+      </Route>
+
       {/* Protected — inside AppLayout */}
       <Route element={<AppLayout />}>
         <Route index element={<DashboardPage />} />
@@ -74,11 +86,21 @@ export default function App() {
             <TenantsPage />
           </RoleGate>
         } />
+        <Route path="subscription-plans" element={
+          <RoleGate allow={['super_admin']} fallback={<Navigate to="/" replace />}>
+            <SubscriptionPlansPage />
+          </RoleGate>
+        } />
 
         {/* Admin and above */}
         <Route path="users" element={
           <RoleGate allow={['super_admin', 'admin']} fallback={<Navigate to="/" replace />}>
             <UsersPage />
+          </RoleGate>
+        } />
+        <Route path="companies" element={
+          <RoleGate allow={['admin']} fallback={<Navigate to="/" replace />}>
+            <CompaniesPage />
           </RoleGate>
         } />
 
@@ -99,6 +121,7 @@ export default function App() {
         <Route path="retail"           element={<RetailPage />} />
         <Route path="agriculture"      element={<AgriculturePage />} />
         <Route path="general-billing"  element={<GeneralBillingPage />} />
+        <Route path="profile" element={<ProfilePage />} />
         <Route path="settings" element={<PlaceholderPage title="Settings" />} />
         <Route path="error-logs" element={
           <RoleGate allow={['super_admin']} fallback={<Navigate to="/" replace />}>

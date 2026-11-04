@@ -1,5 +1,4 @@
 import { configureStore } from '@reduxjs/toolkit'
-import axios from 'axios'
 import authReducer, {
   login,
   logout,
@@ -9,11 +8,24 @@ import authReducer, {
 } from '../authSlice'
 import type { User } from '@/types'
 
-jest.mock('axios')
-const mockedAxios = axios as jest.Mocked<typeof axios>
+// Mock the service layer — prevents apiHandler/axios initialisation in jsdom
+jest.mock('@/services/modules/authService', () => ({
+  authService: {
+    login: jest.fn(),
+    logout: jest.fn(),
+    me: jest.fn(),
+    refresh: jest.fn(),
+    forgotPassword: jest.fn(),
+    resetPassword: jest.fn(),
+  },
+}))
+
+import { authService } from '@/services/modules/authService'
+
+const mockedAuthService = authService as jest.Mocked<typeof authService>
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Fixtures
 // ---------------------------------------------------------------------------
 
 const mockUser: User = {
@@ -46,6 +58,8 @@ function makeStore() {
 describe('authSlice reducer', () => {
   const initialState = {
     user: null,
+    access_token: null as string | null,
+    refresh_token: null as string | null,
     isAuthenticated: false,
     isLoading: false,
     error: null,
@@ -80,11 +94,12 @@ describe('authSlice reducer', () => {
   it('login.fulfilled sets user and isAuthenticated', () => {
     const result = authReducer(initialState, {
       type: login.fulfilled.type,
-      payload: mockUser,
+      payload: { tokens: mockTokens, user: mockUser },
     })
     expect(result.isAuthenticated).toBe(true)
     expect(result.user).toEqual(mockUser)
     expect(result.isLoading).toBe(false)
+    expect(result.access_token).toBe(mockTokens.access_token)
   })
 
   it('login.rejected sets error and clears isLoading', () => {
@@ -122,7 +137,7 @@ describe('authSlice reducer', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Thunk integration tests (with mocked axios)
+// Thunk integration tests
 // ---------------------------------------------------------------------------
 
 describe('login thunk', () => {
@@ -132,27 +147,20 @@ describe('login thunk', () => {
   })
 
   it('dispatches fulfilled on successful login', async () => {
-    mockedAxios.create.mockReturnThis()
-    mockedAxios.post
-      .mockResolvedValueOnce({ data: mockTokens })   // /auth/login
-    mockedAxios.get
-      .mockResolvedValueOnce({ data: mockUser })      // /auth/me
+    mockedAuthService.login.mockResolvedValueOnce({ data: mockTokens, status: 200, headers: {} } as never)
+    mockedAuthService.me.mockResolvedValueOnce({ data: mockUser, status: 200, headers: {} } as never)
 
     const store = makeStore()
     const result = await store.dispatch(login({ email: 'admin@test.com', password: 'Password123' }))
 
     expect(login.fulfilled.match(result)).toBe(true)
     if (login.fulfilled.match(result)) {
-      expect(result.payload).toEqual(mockUser)
+      expect(result.payload.user).toEqual(mockUser)
     }
   })
 
   it('dispatches rejected on failed login', async () => {
-    mockedAxios.create.mockReturnThis()
-    mockedAxios.post.mockRejectedValueOnce({
-      isAxiosError: true,
-      response: { data: { detail: 'Invalid email or password' } },
-    })
+    mockedAuthService.login.mockRejectedValueOnce({ message: 'Invalid email or password' })
 
     const store = makeStore()
     const result = await store.dispatch(login({ email: 'bad@test.com', password: 'wrong' }))
@@ -162,41 +170,43 @@ describe('login thunk', () => {
   })
 
   it('stores tokens in localStorage on success', async () => {
-    mockedAxios.create.mockReturnThis()
-    mockedAxios.post.mockResolvedValueOnce({ data: mockTokens })
-    mockedAxios.get.mockResolvedValueOnce({ data: mockUser })
+    mockedAuthService.login.mockResolvedValueOnce({ data: mockTokens, status: 200, headers: {} } as never)
+    mockedAuthService.me.mockResolvedValueOnce({ data: mockUser, status: 200, headers: {} } as never)
 
     const store = makeStore()
     await store.dispatch(login({ email: 'admin@test.com', password: 'Password123' }))
 
-    expect(localStorage.getItem('access_token')).toBe(mockTokens.access_token)
-    expect(localStorage.getItem('refresh_token')).toBe(mockTokens.refresh_token)
+    // tokenService stores under nms_* keys
+    expect(localStorage.getItem('nms_access_token')).toBe(mockTokens.access_token)
+    expect(localStorage.getItem('nms_refresh_token')).toBe(mockTokens.refresh_token)
   })
 })
 
 describe('logout thunk', () => {
-  it('clears localStorage on logout', async () => {
-    localStorage.setItem('access_token', 'some-token')
-    localStorage.setItem('refresh_token', 'some-refresh')
+  beforeEach(() => {
+    localStorage.clear()
+    jest.clearAllMocks()
+  })
 
-    mockedAxios.create.mockReturnThis()
-    mockedAxios.post.mockResolvedValueOnce({})
+  it('clears localStorage on logout', async () => {
+    localStorage.setItem('nms_access_token', 'some-token')
+    localStorage.setItem('nms_refresh_token', 'some-refresh')
+    mockedAuthService.logout.mockResolvedValueOnce({ data: undefined, status: 200, headers: {} } as never)
 
     const store = makeStore()
     await store.dispatch(logout())
 
-    expect(localStorage.getItem('access_token')).toBeNull()
-    expect(localStorage.getItem('refresh_token')).toBeNull()
+    expect(localStorage.getItem('nms_access_token')).toBeNull()
+    expect(localStorage.getItem('nms_refresh_token')).toBeNull()
   })
 
   it('clears localStorage even if logout API fails', async () => {
-    localStorage.setItem('access_token', 'some-token')
-    mockedAxios.create.mockReturnThis()
-    mockedAxios.post.mockRejectedValueOnce(new Error('Network error'))
+    localStorage.setItem('nms_access_token', 'some-token')
+    mockedAuthService.logout.mockRejectedValueOnce(new Error('Network error'))
 
     const store = makeStore()
     await store.dispatch(logout())
 
-    expect(localStorage.getItem('access_token')).toBeNull()
+    expect(localStorage.getItem('nms_access_token')).toBeNull()
   })
 })
