@@ -7,7 +7,7 @@ from typing import Optional
 class TenantCreate(BaseModel):
     name: str
     slug: str
-    subscription_plan_id: int
+    subscription_plan_id: Optional[int] = None
     billing_period: Optional[str] = 'trial'  # trial | quarterly | yearly
     email: Optional[EmailStr] = None
     phone: Optional[str] = Field(default=None, max_length=20)

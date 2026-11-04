@@ -93,14 +93,12 @@ class TestTenantCRUD:
         response = await client.post("/api/v1/tenants", headers=auth_header(super_admin), json={
             "name": "Build Corp",
             "slug": "build-corp",
-            "plan": "pro",
             "email": "contact@buildcorp.com",
             "gstin": "22AAAAA0000A1Z5",
         })
         assert response.status_code == 201
         data = response.json()
         assert data["slug"] == "build-corp"
-        assert data["plan"] == "pro"
         assert data["enabled_modules"] == []
 
     async def test_duplicate_slug_rejected(
@@ -131,12 +129,11 @@ class TestTenantCRUD:
         response = await client.patch(
             f"/api/v1/tenants/{existing_tenant.id}",
             headers=auth_header(super_admin),
-            json={"name": "Updated Corp", "plan": "enterprise"},
+            json={"name": "Updated Corp"},
         )
         assert response.status_code == 200
         data = response.json()
         assert data["name"] == "Updated Corp"
-        assert data["plan"] == "enterprise"
 
     async def test_deactivate_tenant(
         self, client: AsyncClient, super_admin: User, existing_tenant: Tenant
