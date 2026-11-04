@@ -1,5 +1,7 @@
 from app.models.base import TimestampMixin, SoftDeleteMixin, UUIDMixin
-from app.models.tenant import Tenant, DomainModule, SubscriptionPlan
+from app.models.subscription_plan import SubscriptionPlan
+from app.models.tenant import Tenant, DomainModule
+from app.models.company import Company
 from app.models.user import User, UserRole, ROLE_HIERARCHY, CREATABLE_ROLES
 from app.models.authorization import (
     Role, UserRoleAssignment, UserPermission, RolePermissionAssignment,
@@ -27,12 +29,14 @@ from app.models.general import (
     ServiceCategory, Service, SubscriptionPlanModel, ClientSubscription,
     RecurringTemplate, GenInvoice, GenInvoiceItem,
 )
+from app.models.mind_map import MindMap, MindMapNode, MindMapEdge, MindMapActivityLog
 
 __all__ = [
     # Base mixins
     "TimestampMixin", "SoftDeleteMixin", "UUIDMixin",
     # Core
     "Tenant", "DomainModule", "SubscriptionPlan",
+    "Company",
     "User", "UserRole", "ROLE_HIERARCHY", "CREATABLE_ROLES",
     # Authorization — PDF tables: user_roles_master, user_role_assignments,
     #                             user_permissions_master, role_permission_assignments
