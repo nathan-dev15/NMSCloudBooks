@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy import select, func
 from app.core.deps import DB, SuperAdmin, require_super_admin
+from app.models.tenant import Tenant as TenantModel
 from app.repositories.subscription_plan_repository import SubscriptionPlanRepository
 from app.schemas.subscription_plan import (
     SubscriptionPlanCreate, SubscriptionPlanUpdate, SubscriptionPlanResponse,
@@ -68,10 +70,14 @@ async def delete_plan(
     plan = await repo.get_by_id(plan_id)
     if not plan:
         raise HTTPException(status_code=404, detail="Subscription plan not found")
-    # Guard: don't delete plans that have tenants
-    if plan.tenants:
+    # Guard: don't delete plans that have tenants (avoid lazy-load in async context)
+    count_result = await db.execute(
+        select(func.count()).where(TenantModel.subscription_plan_id == plan_id)
+    )
+    tenant_count = count_result.scalar() or 0
+    if tenant_count:
         raise HTTPException(
             status_code=409,
-            detail=f"Cannot delete — {len(plan.tenants)} tenant(s) use this plan",
+            detail=f"Cannot delete — {tenant_count} tenant(s) use this plan",
         )
     await repo.delete(plan)
